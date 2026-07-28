@@ -1,0 +1,77 @@
+/* Custom overrides — Tailwind via CDN handles the rest */
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator { display: inline; }
+
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+
+::selection {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+/* ── App shell ── */
+body {
+  background-image:
+    radial-gradient(circle at 12% -10%, rgba(16, 185, 129, 0.12), transparent 42%),
+    radial-gradient(circle at 88% 0%, rgba(56, 189, 248, 0.12), transparent 38%);
+  background-attachment: fixed;
+}
+
+/* ── Surface primitive: white card with a hairline ring ── */
+.uph-card {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 0 0 1px rgb(226 232 240);
+}
+.uph-card.ring-amber-200 {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 0 0 1px rgb(253 230 138);
+}
+
+/* ── Entrance animation (staggered via --d) ── */
+@keyframes uph-rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.uph-rise {
+  animation: uph-rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* ── Stacked proportion bars ── */
+@keyframes uph-bar-grow {
+  from { transform: scaleX(0); }
+  to   { transform: none; }
+}
+.uph-bar {
+  height: 100%;
+  transform-origin: left;
+  animation: uph-bar-grow 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 250ms;
+}
+
+/* ── Scrollbar polish ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uph-rise,
+  .uph-bar { animation: none; }
+}

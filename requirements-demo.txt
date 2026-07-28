@@ -1,0 +1,18 @@
+# Optional tooling for producing the demo video. Not needed to run the app.
+#
+#   pip install -r requirements-demo.txt
+#   python -m playwright install chromium
+#
+# Kept separate because Playwright downloads a browser (~150 MB), which has no
+# business in a normal app or CI install.
+#
+# Pipeline:
+#   scripts/record_demo.py    capture + captions   (playwright)
+#   scripts/add_voiceover.py  narration + mux      (edge-tts, imageio-ffmpeg)
+#   scripts/edit_demo.py      hook/captions/music  (playwright, imageio-ffmpeg)
+#   scripts/make_music_bed.py background bed       (stdlib only)
+#   scripts/make_thumbnail.py LinkedIn thumbnails  (playwright)
+
+playwright>=1.44
+edge-tts>=6.1
+imageio-ffmpeg>=0.5

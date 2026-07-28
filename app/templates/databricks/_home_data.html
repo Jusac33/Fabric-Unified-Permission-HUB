@@ -1,0 +1,86 @@
+<!-- Fragment: databricks home data (loaded via HTMX) -->
+{% if error %}
+<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">
+  <strong>Error:</strong> {{ error }}<br>
+  {% if not pairings %}
+  No pairings configured yet — <a class="underline" href="/pairings">add one here</a>.
+  {% else %}
+  Verify your <code>az login</code> identity has Databricks workspace + UC access.
+  {% endif %}
+</div>
+{% endif %}
+
+{% if recent and not workspace_url %}
+<section class="bg-white rounded-xl shadow p-5 mb-4">
+  <h2 class="font-semibold mb-2 text-sm">Recent workspaces</h2>
+  <ul class="text-sm">
+    {% for u in recent %}
+    <li class="py-1">
+      <a class="text-emerald-700 hover:underline font-mono text-xs" href="/databricks?workspace_url={{ u }}">{{ u }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <section class="bg-white rounded-xl shadow p-5">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="font-semibold">Catalogs ({{ catalogs|length }})</h2>
+      <input id="cat-filter" type="search" placeholder="Filter…"
+             class="border rounded px-2 py-1 text-xs w-48"
+             oninput="filterCatalogs(this.value)" />
+    </div>
+    <table class="w-full text-sm">
+      <thead class="text-slate-500 text-left"><tr><th>Name</th><th>Owner</th><th></th></tr></thead>
+      <tbody id="cat-tbody">
+        {% for c in catalogs %}
+        <tr class="border-t cat-row" data-name="{{ (c.name or '')|lower }}">
+          <td class="py-1 font-medium">{{ c.name }}</td>
+          <td class="text-xs">{{ c.owner }}</td>
+          <td class="text-right whitespace-nowrap">
+            <form method="post" action="/pairings/wizard/select-databricks" class="inline">
+              <input type="hidden" name="workspace_url" value="{{ workspace_url }}" />
+              <input type="hidden" name="uc_catalog" value="{{ c.name }}" />
+              <input type="hidden" name="back" value="/pairings/wizard" />
+              <button class="text-emerald-700 hover:underline text-xs mr-2" title="Use in pairing wizard">Select</button>
+            </form>
+            <a class="text-slate-600 hover:underline text-xs"
+               href="/databricks/catalog/{{ c.name }}?workspace_url={{ workspace_url }}">Open →</a>
+          </td>
+        </tr>
+        {% else %}<tr><td colspan="3" class="py-2 text-slate-500">None visible.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    <script>
+    function filterCatalogs(q){
+      q = (q||"").trim().toLowerCase();
+      document.querySelectorAll("#cat-tbody tr.cat-row").forEach(r => {
+        r.style.display = (!q || (r.dataset.name||"").includes(q)) ? "" : "none";
+      });
+    }
+    </script>
+  </section>
+
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Workspace identities</h2>
+    <div class="text-xs text-slate-500 mb-2">
+      Users: {{ users|length }} · Groups: {{ groups|length }} · Service principals: {{ sps|length }}
+    </div>
+    <details class="text-xs"><summary class="cursor-pointer text-slate-500">Show users</summary>
+      <ul class="mt-2 max-h-48 overflow-auto">
+        {% for u in users %}<li>{{ u.userName }}</li>{% endfor %}
+      </ul>
+    </details>
+    <details class="text-xs mt-2"><summary class="cursor-pointer text-slate-500">Show groups</summary>
+      <ul class="mt-2 max-h-48 overflow-auto">
+        {% for g in groups %}<li>{{ g.displayName }}</li>{% endfor %}
+      </ul>
+    </details>
+    <details class="text-xs mt-2"><summary class="cursor-pointer text-slate-500">Show service principals</summary>
+      <ul class="mt-2 max-h-48 overflow-auto">
+        {% for s in sps %}<li>{{ s.displayName }} <span class="text-slate-400">{{ s.applicationId }}</span></li>{% endfor %}
+      </ul>
+    </details>
+  </section>
+</div>

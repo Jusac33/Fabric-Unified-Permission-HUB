@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="uph-rise relative overflow-hidden rounded-3xl bg-slate-950 p-8 text-white shadow-xl shadow-slate-900/10 mb-8">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,.35),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,.25),transparent_35%)]"></div>
+  <div class="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl">
+      <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-emerald-300">
+        <span class="relative flex h-2 w-2">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+        </span>
+        {{ settings.APP_ENV }}
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Unified Permission Hub</h1>
+      <p class="mt-3 text-sm leading-6 text-slate-300">
+        Compare, preview, and apply permissions between Databricks Unity Catalog and
+        Fabric OneLake — including RLS, CLS, and attribute-based access control (ABAC) —
+        without losing auditability.
+      </p>
+      <div class="mt-4 flex flex-wrap gap-2 text-xs">
+        <span class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-slate-200">Grant sync</span>
+        <span class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-slate-200">Row &amp; column security</span>
+        <span class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-slate-200">ABAC policies</span>
+        <span class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-slate-200">Dry-run by default</span>
+        {% if settings.REQUIRE_APPROVAL %}
+        <span class="rounded-full border border-amber-300/30 bg-amber-400/10 px-3 py-1 font-medium text-amber-200">Approval gate on</span>
+        {% endif %}
+        {% if settings.SCAN_INTERVAL_MINUTES > 0 %}
+        <span class="rounded-full border border-sky-300/30 bg-sky-400/10 px-3 py-1 font-medium text-sky-200">Auto-scan every {{ settings.SCAN_INTERVAL_MINUTES }}m</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 lg:self-end">
+      <a href="/capabilities" class="inline-flex items-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300">
+        Source Matrix
+        <span aria-hidden="true">→</span>
+      </a>
+      <a href="/operations" class="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+        Operations
+      </a>
+    </div>
+  </div>
+</section>
+
+<div id="page-data"
+     hx-get="/_data"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+  {% include "_loading.html" %}
+</div>
+{% endblock %}

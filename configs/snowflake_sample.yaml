@@ -1,0 +1,27 @@
+# Snowflake source — sample. Rename to snowflake_<env>.yaml.
+type: SNOWFLAKE
+service_principal:
+  tenant_id: <azure-tenant-id>
+  client_id: <sp-client-id>
+  client_secret: <sp-client-secret>
+source:
+  name: SF_DEMO_DB
+snowflake:
+  account_name: KWXXXXX-AK1234
+  user_name: POLICYWEAVER
+  private_key_file: ./builtin/rsa_policyweaver_key.p8
+  warehouse: COMPUTE_WH
+fabric:
+  workspace_id: <fabric-workspace-id>
+  mirror_id: <fabric-mirror-id>
+  mirror_name: SFDEMODATA
+  fabric_role_suffix: PW
+  delete_default_reader_role: true
+  policy_mapping: role_based
+constraints:
+  columns:
+    columnlevelsecurity: true
+    fallback: deny
+  rows:
+    rowlevelsecurity: false
+    fallback: deny

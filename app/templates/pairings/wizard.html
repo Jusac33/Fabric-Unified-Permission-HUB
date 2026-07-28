@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold">Pairing wizard</h1>
+  <p class="text-sm text-slate-500">Pick a Fabric workspace, pick a Unity Catalog, then create the pairing. Permissions diff appears on the next screen.</p>
+</div>
+
+<ol class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+  <li class="bg-white rounded-xl shadow p-5">
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold">① Fabric workspace</h2>
+      {% if wizard.fabric_workspace_id %}
+        <span class="text-emerald-700 text-xs">✓ selected</span>
+      {% else %}
+        <span class="text-slate-400 text-xs">not selected</span>
+      {% endif %}
+    </div>
+    {% if wizard.fabric_workspace_id %}
+      <div class="mt-3 text-sm">
+        <div class="font-medium">{{ wizard.fabric_workspace_name or "(no name)" }}</div>
+        <div class="text-xs font-mono text-slate-500">{{ wizard.fabric_workspace_id }}</div>
+      </div>
+    {% else %}
+      <p class="mt-3 text-sm text-slate-500">Go to <a href="/fabric" class="text-emerald-700 underline">Fabric</a>, open a workspace, and click <em>Select for pairing</em>.</p>
+    {% endif %}
+  </li>
+
+  <li class="bg-white rounded-xl shadow p-5">
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold">② Unity Catalog</h2>
+      {% if wizard.uc_catalog %}
+        <span class="text-emerald-700 text-xs">✓ selected</span>
+      {% else %}
+        <span class="text-slate-400 text-xs">not selected</span>
+      {% endif %}
+    </div>
+    {% if wizard.uc_catalog %}
+      <div class="mt-3 text-sm">
+        <div class="font-medium font-mono">{{ wizard.uc_catalog }}</div>
+        <div class="text-xs font-mono text-slate-500">{{ wizard.dbx_workspace_url }}</div>
+      </div>
+    {% else %}
+      <p class="mt-3 text-sm text-slate-500">Go to <a href="/databricks" class="text-emerald-700 underline">Databricks</a>, open a catalog, and click <em>Select for pairing</em>.</p>
+    {% endif %}
+  </li>
+</ol>
+
+<section class="bg-white rounded-xl shadow p-5 mb-4">
+  <h2 class="font-semibold mb-3">③ Create pairing</h2>
+  {% if is_complete %}
+    <form method="post" action="/pairings/wizard/create" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <label class="block">
+        <span class="text-slate-600">Label (optional)</span>
+        <input name="label" placeholder="e.g. Prod UC ↔ Prod Fabric" class="mt-1 w-full border rounded px-2 py-1.5" />
+      </label>
+      <label class="block">
+        <span class="text-slate-600">Notes (optional)</span>
+        <input name="notes" class="mt-1 w-full border rounded px-2 py-1.5" />
+      </label>
+      <div class="md:col-span-2 flex justify-between">
+        <form method="post" action="/pairings/wizard/clear" class="inline"><button class="text-slate-500 text-xs hover:underline">Reset selections</button></form>
+        <button class="bg-emerald-700 text-white px-4 py-1.5 rounded">Create pairing → show diff</button>
+      </div>
+    </form>
+  {% else %}
+    <p class="text-slate-500 text-sm">Complete steps ① and ② first.</p>
+  {% endif %}
+</section>
+
+<p class="text-xs text-slate-500">Current selection is saved at <code>{{ settings.CONFIGS_DIR }}/.wizard.json</code> and persists until you reset it.</p>
+{% endblock %}

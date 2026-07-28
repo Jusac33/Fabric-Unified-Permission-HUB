@@ -1,0 +1,67 @@
+<!-- Fragment: fabric workspaces list (loaded via HTMX) -->
+{% if me %}
+<div class="text-xs text-slate-500 mb-3">Signed in as <strong>{{ me.userPrincipalName or me.mail or me.displayName }}</strong></div>
+{% endif %}
+
+{% if error %}
+<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">
+  <strong>Error:</strong> {{ error }}<br>
+  Make sure you ran <code>az login</code> and your account has access to Fabric.
+</div>
+{% endif %}
+
+<div class="mb-3 flex items-center gap-3">
+  <input id="ws-filter" type="search" placeholder="Filter by name or ID…"
+         class="border rounded px-3 py-1.5 text-sm w-80"
+         oninput="filterWorkspaces(this.value)" autofocus />
+  <span class="text-xs text-slate-500">
+    Showing <span id="ws-visible">{{ workspaces|length }}</span> of {{ workspaces|length }}
+  </span>
+  <a href="/pairings/wizard" class="ml-auto text-xs text-emerald-700 hover:underline">Go to pairing wizard →</a>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-left text-slate-600">
+      <tr><th class="p-3">Workspace</th><th>Type</th><th>Capacity</th><th>ID</th><th></th></tr>
+    </thead>
+    <tbody id="ws-tbody">
+      {% for w in workspaces %}
+      <tr class="border-t hover:bg-slate-50 ws-row"
+          data-name="{{ (w.displayName or '')|lower }}"
+          data-id="{{ (w.id or '')|lower }}">
+        <td class="p-3 font-medium">{{ w.displayName }}</td>
+        <td>{{ w.type }}</td>
+        <td class="text-slate-500 text-xs">{{ w.capacityId or "–" }}</td>
+        <td class="text-slate-500 text-xs font-mono">{{ w.id }}</td>
+        <td class="text-right pr-3 whitespace-nowrap">
+          <form method="post" action="/pairings/wizard/select-fabric" class="inline">
+            <input type="hidden" name="workspace_id" value="{{ w.id }}" />
+            <input type="hidden" name="workspace_name" value="{{ w.displayName }}" />
+            <input type="hidden" name="back" value="/pairings/wizard" />
+            <button class="text-emerald-700 hover:underline mr-3" title="Use this workspace in the pairing wizard">Select</button>
+          </form>
+          <a class="text-slate-600 hover:underline" href="/fabric/workspaces/{{ w.id }}">Open →</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="p-6 text-slate-500">No workspaces visible to your identity.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function filterWorkspaces(q) {
+  q = (q || "").trim().toLowerCase();
+  let visible = 0;
+  document.querySelectorAll("#ws-tbody tr.ws-row").forEach(row => {
+    const hay = (row.dataset.name || "") + " " + (row.dataset.id || "");
+    const match = !q || hay.includes(q);
+    row.style.display = match ? "" : "none";
+    if (match) visible++;
+  });
+  const counter = document.getElementById("ws-visible");
+  if (counter) counter.textContent = visible;
+}
+</script>

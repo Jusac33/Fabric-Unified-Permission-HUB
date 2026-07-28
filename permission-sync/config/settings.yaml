@@ -1,0 +1,86 @@
+auth:
+  mode: "managed_identity"
+  user_assigned_client_id_env: "AZURE_CLIENT_ID"
+  key_vault_uri_env: "KEY_VAULT_URI"
+
+discovery:
+  fabric:
+    api_base: "https://api.fabric.microsoft.com/v1"
+    workspace_filter_tag_key: ""
+    workspace_filter_tag_value: ""
+    onelake_data_access_roles_enabled: false
+
+  unity_catalog:
+    databricks_account_id_secret: "databricks-account-id"
+    databricks_account_host: "https://accounts.azuredatabricks.net"
+
+  snowflake:
+    account_secret_prefix: "snowflake-account-"
+    auth_mode: "private_key"
+
+sync:
+  direction: "bidirectional"
+  scope:
+    databases: "*"
+    schemas: "*"
+    tables: "*"
+    columns: false
+  reconcile_interval_minutes: 60
+  conflict_resolution: "source_wins"
+  dry_run: true
+
+  fabric_write_planner:
+    DATA_READ:
+      primary_layer: "onelake_data_access_role"
+      fallback_layer: "workspace_role"
+      workspace_role_mapping: "Viewer"
+    DATA_WRITE:
+      primary_layer: "workspace_role"
+      workspace_role_mapping: "Contributor"
+    DATA_ADMIN:
+      primary_layer: "workspace_role"
+      workspace_role_mapping: "Admin"
+    WORKSPACE_VIEW:
+      primary_layer: "workspace_role"
+      workspace_role_mapping: "Viewer"
+    WORKSPACE_EDIT:
+      primary_layer: "workspace_role"
+      workspace_role_mapping: "Member"
+    WORKSPACE_ADMIN:
+      primary_layer: "workspace_role"
+      workspace_role_mapping: "Admin"
+    OBJECT_USE:
+      primary_layer: "none"
+
+  event_accelerators:
+    unity_catalog_event_hub:
+      enabled: false
+      namespace_secret: "uc-eventhub-namespace"
+      hub_name_secret: "uc-eventhub-name"
+      audit_log_events:
+        - "grants"
+        - "revokes"
+        - "createCatalog"
+        - "dropCatalog"
+        - "createSchema"
+        - "dropSchema"
+    snowflake_event_hub:
+      enabled: false
+      namespace_secret: "sf-eventhub-namespace"
+      hub_name_secret: "sf-eventhub-name"
+
+policy_weaver:
+  endpoint_secret: "policy-weaver-endpoint"
+  api_key_secret: "policy-weaver-api-key"
+
+onesync:
+  api_endpoint_secret: "onesync-api-endpoint"
+  api_key_secret: "onesync-api-key"
+
+observability:
+  log_analytics_workspace_id_secret: "log-analytics-workspace-id"
+  log_analytics_shared_key_secret: "log-analytics-shared-key"
+  audit_storage_url_secret: "audit-storage-account-url"
+  teams_webhook_secret: "teams-webhook-url"
+
+privilege_matrix_path: "config/privilege_matrix.yaml"

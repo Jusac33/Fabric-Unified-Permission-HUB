@@ -1,0 +1,25 @@
+# Databricks Unity Catalog source — sample. Rename to databricks_<env>.yaml.
+type: UNITY_CATALOG
+service_principal:
+  tenant_id: <azure-tenant-id>
+  client_id: <sp-client-id>
+  client_secret: <sp-client-secret>
+source:
+  name: my_uc_catalog
+databricks:
+  workspace_url: https://adb-xxxx.azuredatabricks.net
+  account_id: <databricks-account-id>
+fabric:
+  workspace_id: <fabric-workspace-id>
+  mirror_id: <fabric-mirror-id>
+  mirror_name: MIRRORED_DBX
+  fabric_role_suffix: PW
+  delete_default_reader_role: true
+  policy_mapping: role_based
+constraints:
+  columns:
+    columnlevelsecurity: true
+    fallback: deny
+  rows:
+    rowlevelsecurity: true
+    fallback: deny

@@ -1,0 +1,27 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.cache/
+snapshots/
+audits/
+data/
+*.log
+# Generated demo media — large binaries, fully reproducible from scripts/
+# (record_demo.py -> add_voiceover.py -> edit_demo.py, make_music_bed.py, make_thumbnail.py)
+recordings/
+# Real tenant configs — keep out of source control
+configs/*.yaml
+configs/*.json
+configs/.recent_dbx.json
+!configs/*_sample.yaml
+!configs/*.example.yaml
+!configs/*.example.json
+permission-sync/logs/
+# Squad: ignore runtime state (logs, inbox, sessions)
+.squad/orchestration-log/
+.squad/log/
+.squad/decisions/inbox/
+.squad/sessions/
+# Squad: SubSquad activation file (local to this machine)
+.squad-workstream

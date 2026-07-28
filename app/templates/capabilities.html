@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Source Matrix - {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<div class="mb-6 overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <div class="mb-2 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800">OneSync-style design</div>
+      <h1 class="text-2xl font-bold">Source Matrix</h1>
+      <p class="mt-1 max-w-3xl text-sm text-slate-500">Canonical permission authority map for Fabric, UC, Snowflake, and AWS/S3 shortcuts. Shortcut targets are treated as source authorities, not just files.</p>
+    </div>
+    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+      <div class="rounded-2xl bg-slate-50 p-3"><div class="text-slate-500">UC ↔ Fabric</div><div class="font-semibold text-emerald-700">Live</div></div>
+      <div class="rounded-2xl bg-slate-50 p-3"><div class="text-slate-500">Shortcuts</div><div class="font-semibold text-sky-700">Preview</div></div>
+      <div class="rounded-2xl bg-slate-50 p-3"><div class="text-slate-500">AWS/Snow</div><div class="font-semibold text-amber-700">Planned</div></div>
+    </div>
+  </div>
+</div>
+
+<section class="bg-white rounded-xl shadow p-5 mb-6">
+  <h2 class="font-semibold mb-3">Source authorities</h2>
+  <div class="overflow-auto">
+    <table class="w-full text-sm">
+      <thead class="text-left text-xs uppercase text-slate-500">
+        <tr><th class="py-2">Source</th><th>Authority?</th><th>Scopes</th><th>Row/column</th><th>Connector</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+      {% for s in sources %}
+        <tr class="border-t align-top">
+          <td class="py-2 font-medium">{{ s.display_name }}</td>
+          <td>{{ 'yes' if s.authority else 'bridge only' }}</td>
+          <td class="text-xs font-mono">{{ s.supported_scopes|join(', ') }}</td>
+          <td><span class="text-xs px-1.5 py-0.5 rounded bg-slate-100">{{ s.row_column_security.value }}</span></td>
+          <td><span class="text-xs px-1.5 py-0.5 rounded bg-slate-100">{{ s.connector_status.value }}</span></td>
+          <td class="text-xs text-slate-500">{{ s.notes }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="bg-white rounded-xl shadow p-5 mb-6">
+  <h2 class="font-semibold mb-3">Bidirectional translation plan</h2>
+  <div class="overflow-auto">
+    <table class="w-full text-sm">
+      <thead class="text-left text-xs uppercase text-slate-500">
+        <tr><th class="py-2">Source</th><th>Target</th><th>Grant sync</th><th>Row/column sync</th><th>Bidirectional</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+      {% for t in translations %}
+        <tr class="border-t align-top">
+          <td class="py-2 font-mono text-xs">{{ t.source.value }}</td>
+          <td class="font-mono text-xs">{{ t.target.value }}</td>
+          <td><span class="text-xs px-1.5 py-0.5 rounded bg-slate-100">{{ t.grant_sync.value }}</span></td>
+          <td><span class="text-xs px-1.5 py-0.5 rounded bg-slate-100">{{ t.row_column_sync.value }}</span></td>
+          <td>{{ 'yes' if t.bidirectional else 'no' }}</td>
+          <td class="text-xs text-slate-500">{{ t.notes }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="bg-white rounded-xl shadow p-5">
+  <h2 class="font-semibold mb-3">Fabric shortcut permission plan</h2>
+  <form method="get" action="/capabilities" class="flex gap-2 mb-4 text-sm">
+    <input name="workspace_id" value="{{ workspace_id }}" placeholder="Fabric workspace ID"
+           class="border rounded px-2 py-1.5 font-mono flex-1" />
+    <button class="bg-emerald-700 text-white px-3 py-1.5 rounded">Inspect shortcuts</button>
+  </form>
+  {% if shortcut_error %}
+    <div class="p-3 rounded bg-rose-50 text-rose-800 text-sm">{{ shortcut_error }}</div>
+  {% elif workspace_id and shortcuts %}
+    <table class="w-full text-sm">
+      <thead class="text-left text-xs uppercase text-slate-500">
+        <tr><th class="py-2">Shortcut</th><th>Path</th><th>Target</th><th>Authority</th><th>Grant sync</th><th>Row/column</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+      {% for s in shortcuts %}
+        <tr class="border-t align-top">
+          <td class="py-2">{{ s.shortcut_name }}</td>
+          <td class="font-mono text-xs">{{ s.shortcut_path }}</td>
+          <td>{{ s.target_type }}<div class="text-xs text-slate-400">{{ s.target_location }}</div></td>
+          <td class="font-mono text-xs">{{ s.target_platform.value }}</td>
+          <td><span class="text-xs px-1.5 py-0.5 rounded bg-slate-100">{{ s.grant_sync.value }}</span></td>
+          <td><span class="text-xs px-1.5 py-0.5 rounded bg-slate-100">{{ s.row_column_sync.value }}</span></td>
+          <td class="text-xs text-slate-500">
+            {% if s.applyable %}
+              Applyable
+            {% else %}
+              {{ s.blocked_reason }}
+            {% endif %}
+            <div class="text-slate-400">{{ s.notes }}</div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% elif workspace_id %}
+    <p class="text-sm text-slate-500">No Lakehouse shortcuts found in that workspace.</p>
+  {% else %}
+    <p class="text-sm text-slate-500">Enter a Fabric workspace ID to classify Lakehouse shortcuts and identify the source-side permission authority.</p>
+  {% endif %}
+</section>
+{% endblock %}

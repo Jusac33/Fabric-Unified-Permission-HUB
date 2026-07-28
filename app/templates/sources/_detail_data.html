@@ -1,0 +1,57 @@
+<!-- Fragment: source detail data (loaded via HTMX) -->
+{% if test_result %}
+<div class="mb-4 p-3 rounded text-sm {% if test_result.ok %}bg-emerald-50 text-emerald-800{% else %}bg-rose-50 text-rose-800{% endif %}">
+  Connection: {{ test_result.message }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">
+  <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Principals ({{ principals|length }})</h2>
+    <div class="max-h-96 overflow-auto text-sm">
+      {% for p in principals %}
+      <div class="py-1 border-b last:border-0">
+        <span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 mr-1">{{ p.kind }}</span>
+        {{ p.name }}
+      </div>
+      {% else %}
+      <p class="text-slate-500">None.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Objects ({{ objects|length }})</h2>
+    <div class="max-h-96 overflow-auto text-sm font-mono">
+      {% for o in objects %}<div class="py-0.5">{{ o.fqn }}</div>{% else %}<p class="text-slate-500">None.</p>{% endfor %}
+    </div>
+  </section>
+
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Grants ({{ grants|length }})</h2>
+    <div class="max-h-96 overflow-auto text-xs">
+      <table class="w-full">
+        <thead class="text-slate-500 text-left">
+          <tr><th>Principal</th><th>Object</th><th>Perm</th></tr>
+        </thead>
+        <tbody>
+          {% for g in grants %}
+          <tr class="border-b last:border-0">
+            <td class="py-1">{{ g.principal.name }}</td>
+            <td class="font-mono">{{ g.object.fqn }}</td>
+            <td>{{ g.permission }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="py-3 text-slate-500">None.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

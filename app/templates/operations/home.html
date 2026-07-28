@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-5 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Operations</h1>
+    <p class="text-sm text-slate-500">Audit trail and identity reconciliation across all pairings.</p>
+  </div>
+  <a href="/api/audit.csv" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Export audit CSV</a>
+</div>
+
+<!-- Approvals -->
+<section class="mb-8">
+  <div class="mb-2 flex items-center gap-3">
+    <h2 class="text-lg font-semibold">Approvals</h2>
+    {% if require_approval %}
+    <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">gate enabled</span>
+    {% else %}
+    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">gate off (set REQUIRE_APPROVAL)</span>
+    {% endif %}
+  </div>
+  {% set pending = approvals | selectattr('status','equalto','pending') | list %}
+  {% if approvals %}
+  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-2.5">Requested</th><th class="px-4 py-2.5">Pairing</th><th class="px-4 py-2.5">Direction</th><th class="px-4 py-2.5">Rows</th><th class="px-4 py-2.5">Status</th><th class="px-4 py-2.5">Action</th></tr>
+      </thead>
+      <tbody>
+        {% for r in approvals %}
+        <tr class="border-t border-slate-100">
+          <td class="px-4 py-2.5 text-xs text-slate-400">{{ r.requested_at[:19].replace('T',' ') }}</td>
+          <td class="px-4 py-2.5 font-mono text-xs">{{ r.pairing_id }}</td>
+          <td class="px-4 py-2.5 text-xs">{{ r.direction }}</td>
+          <td class="px-4 py-2.5 text-xs tabular-nums">{{ r.row_keys|length }}</td>
+          <td class="px-4 py-2.5 text-xs">
+            {% if r.status == 'pending' %}<span class="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">pending</span>
+            {% elif r.status == 'approved' %}<span class="rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-800">approved</span>
+            {% elif r.status == 'executed' %}<span class="rounded bg-slate-200 px-1.5 py-0.5 text-slate-600">executed</span>
+            {% else %}<span class="rounded bg-rose-100 px-1.5 py-0.5 text-rose-800">{{ r.status }}</span>{% endif %}
+          </td>
+          <td class="px-4 py-2.5">
+            {% if r.status == 'pending' %}
+            <div class="flex items-center gap-1">
+              <form method="post" action="/operations/approvals/{{ r.id }}/approve"><button class="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700">Approve</button></form>
+              <form method="post" action="/operations/approvals/{{ r.id }}/reject"><button class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-500 hover:bg-rose-50 hover:text-rose-600">Reject</button></form>
+            </div>
+            {% elif r.status == 'approved' %}
+            <a href="/pairings/{{ r.pairing_id }}" class="text-xs text-emerald-700 hover:underline">Open to execute →</a>
+            {% else %}<span class="text-xs text-slate-300">—</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+    No approval requests. {% if require_approval %}Real applies will appear here for approval.{% else %}Enable <span class="font-mono text-xs">REQUIRE_APPROVAL</span> to gate real applies.{% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<!-- Identity reconciliation queue -->
+<section class="mb-8">
+  <div class="mb-2 flex items-center gap-3">
+    <h2 class="text-lg font-semibold">Identity reconciliation</h2>
+    <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">{{ identity_counts.unresolved }} unresolved</span>
+    {% if identity_counts.resolved %}<span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">{{ identity_counts.resolved }} resolved</span>{% endif %}
+  </div>
+  {% if identity %}
+  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-2.5">Principal</th><th class="px-4 py-2.5">Type</th><th class="px-4 py-2.5">Reason</th><th class="px-4 py-2.5">Last seen</th><th class="px-4 py-2.5">Resolve</th></tr>
+      </thead>
+      <tbody>
+        {% for i in identity %}
+        <tr class="border-t border-slate-100">
+          <td class="px-4 py-2.5 font-mono text-xs">{{ i.principal }}</td>
+          <td class="px-4 py-2.5 text-slate-600">{{ i.principal_type or '—' }}</td>
+          <td class="px-4 py-2.5 text-xs text-slate-500">{{ i.reason }}</td>
+          <td class="px-4 py-2.5 text-xs text-slate-400">{{ i.last_seen[:19].replace('T',' ') }}</td>
+          <td class="px-4 py-2.5">
+            <form method="post" action="/operations/identity/{{ i.id }}/resolve" class="flex items-center gap-1">
+              <input name="oid" placeholder="Entra object id" class="w-56 rounded border border-slate-300 px-2 py-1 font-mono text-xs" required />
+              <button class="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700">Resolve</button>
+            </form>
+            <form method="post" action="/operations/identity/{{ i.id }}/ignore" class="mt-1">
+              <button class="text-[11px] text-slate-400 hover:text-rose-600">Ignore</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+    No unmapped principals. Items appear here when an apply can't map a Databricks principal to Entra.
+  </div>
+  {% endif %}
+</section>
+
+<!-- Audit trail -->
+<section>
+  <h2 class="mb-2 text-lg font-semibold">Audit trail</h2>
+  {% if audit %}
+  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-2.5">Time</th><th class="px-4 py-2.5">Event</th><th class="px-4 py-2.5">Direction</th><th class="px-4 py-2.5">Mode</th><th class="px-4 py-2.5">Status</th><th class="px-4 py-2.5 text-right">ok/skip/fail</th></tr>
+      </thead>
+      <tbody>
+        {% for a in audit %}
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-2.5 text-xs text-slate-400">{{ a.timestamp[:19].replace('T',' ') }}</td>
+          <td class="px-4 py-2.5 text-xs">{{ a.event }}</td>
+          <td class="px-4 py-2.5 text-xs">{{ a.direction or '—' }}</td>
+          <td class="px-4 py-2.5 text-xs">{% if a.dry_run %}<span class="rounded bg-slate-100 px-1.5 py-0.5">dry-run</span>{% else %}<span class="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">apply</span>{% endif %}</td>
+          <td class="px-4 py-2.5 text-xs">{{ a.status }}</td>
+          <td class="px-4 py-2.5 text-right text-xs tabular-nums">
+            <span class="text-emerald-700">{{ a.ok_count }}</span>/<span class="text-slate-500">{{ a.skipped_count }}</span>/<span class="text-rose-700">{{ a.failed_count }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+    No audit events yet. Apply or dry-run a pairing to populate this trail.
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

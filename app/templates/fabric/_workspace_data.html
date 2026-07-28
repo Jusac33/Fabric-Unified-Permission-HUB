@@ -1,0 +1,47 @@
+<!-- Fragment: fabric workspace detail (loaded via HTMX) -->
+{% if error %}<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">{{ error }}</div>{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Items ({{ items|length }})</h2>
+    <div class="max-h-[28rem] overflow-auto text-sm">
+      <table class="w-full">
+        <thead class="text-slate-500 text-left">
+          <tr><th>Name</th><th>Type</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for it in items %}
+          <tr class="border-t">
+            <td class="py-1">{{ it.displayName }}</td>
+            <td class="text-xs">{{ it.type }}</td>
+            <td class="text-right text-xs">
+              {% if it.type in ('MirroredAzureDatabricksCatalog','MirroredDatabase','SQLDatabase','Lakehouse','Warehouse') %}
+              <a class="text-emerald-700 hover:underline"
+                 href="/fabric/workspaces/{{ workspace_id }}/items/{{ it.id }}/policies">Policies</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}<tr><td colspan="3" class="py-2 text-slate-500">No items.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Role assignments ({{ role_assignments|length }})</h2>
+    <div class="max-h-[28rem] overflow-auto text-sm">
+      <table class="w-full">
+        <thead class="text-slate-500 text-left"><tr><th>Principal</th><th>Role</th></tr></thead>
+        <tbody>
+          {% for r in role_assignments %}
+          <tr class="border-t">
+            <td class="py-1">{{ r.principal.displayName if r.principal else r.id }}
+              <span class="text-xs text-slate-400">({{ r.principal.type if r.principal else "" }})</span></td>
+            <td>{{ r.role }}</td>
+          </tr>
+          {% else %}<tr><td colspan="2" class="py-2 text-slate-500">None / no permission to view.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

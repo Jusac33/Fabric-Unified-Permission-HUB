@@ -1,0 +1,8 @@
+azure-identity>=1.17.0
+azure-keyvault-secrets>=4.8.0
+httpx>=0.27.0
+pyyaml>=6.0.1
+# Optional (only needed for Snowflake discovery / write):
+snowflake-connector-python>=3.7.0; python_version < "3.13"
+# Tests
+pytest>=8.0

@@ -1,0 +1,89 @@
+<!-- Fragment: pairings list data (loaded via HTMX) -->
+<section class="bg-white rounded-xl shadow p-5 mb-6">
+  <h2 class="font-semibold mb-3">Add pairing</h2>
+  <form method="post" action="/pairings" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+    <label class="block">
+      <span class="text-slate-600">Label (optional)</span>
+      <input name="label" placeholder="e.g. Prod UC → Prod Fabric" class="mt-1 w-full border rounded px-2 py-1.5" />
+    </label>
+    <label class="block">
+      <span class="text-slate-600">Notes (optional)</span>
+      <input name="notes" class="mt-1 w-full border rounded px-2 py-1.5" />
+    </label>
+    <label class="block md:col-span-2">
+      <span class="text-slate-600">Databricks workspace URL</span>
+      <input name="dbx_workspace_url" required placeholder="https://adb-xxxxxxxxxxxxxxxx.xx.azuredatabricks.net"
+             pattern="https://.+" class="mt-1 w-full border rounded px-2 py-1.5 font-mono" />
+    </label>
+    <label class="block">
+      <span class="text-slate-600">Unity Catalog name</span>
+      <input name="uc_catalog" required placeholder="my_catalog" class="mt-1 w-full border rounded px-2 py-1.5 font-mono" />
+    </label>
+    <label class="block">
+      <span class="text-slate-600">Fabric workspace ID (GUID)</span>
+      <input name="fabric_workspace_id" required
+             pattern="[0-9a-fA-F-]{36}"
+             placeholder="00000000-0000-0000-0000-000000000000"
+             class="mt-1 w-full border rounded px-2 py-1.5 font-mono" />
+    </label>
+    <div class="md:col-span-2 flex justify-end">
+      <button class="bg-slate-900 text-white px-4 py-1.5 rounded text-sm">Add pairing</button>
+    </div>
+  </form>
+</section>
+
+<section class="bg-white rounded-xl shadow p-5">
+  <h2 class="font-semibold mb-3">Configured pairings ({{ pairings|length }})</h2>
+  {% if pairings %}
+  <table class="w-full text-sm">
+    <thead class="text-left text-slate-500 text-xs uppercase">
+      <tr>
+        <th class="py-2">Label</th>
+        <th>Databricks workspace</th>
+        <th>UC catalog</th>
+        <th>Fabric workspace</th>
+        <th class="text-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for p in pairings %}
+      <tr class="border-t align-top">
+        <td class="py-2">
+          <div class="font-medium">{{ p.label }}</div>
+          {% if p.notes %}<div class="text-xs text-slate-500">{{ p.notes }}</div>{% endif %}
+        </td>
+        <td class="font-mono text-xs">
+          <a class="text-emerald-700 hover:underline" href="/databricks?workspace_url={{ p.dbx_workspace_url }}">{{ p.dbx_workspace_url }}</a>
+        </td>
+        <td class="font-mono text-xs">
+          {{ p.uc_catalog }}
+          {% if p.uc_catalog_exists is sameas true %}
+            <span class="ml-1 inline-block px-1.5 py-0.5 text-[10px] rounded bg-emerald-100 text-emerald-800">live</span>
+          {% elif p.uc_catalog_exists is sameas false %}
+            <span class="ml-1 inline-block px-1.5 py-0.5 text-[10px] rounded bg-amber-100 text-amber-800">not found</span>
+          {% elif p.uc_catalog_error %}
+            <span class="ml-1 inline-block px-1.5 py-0.5 text-[10px] rounded bg-rose-100 text-rose-800" title="{{ p.uc_catalog_error }}">unreachable</span>
+          {% endif %}
+        </td>
+        <td class="font-mono text-xs">
+          <a class="text-emerald-700 hover:underline" href="/fabric/workspaces/{{ p.fabric_workspace_id }}">{{ p.fabric_workspace_id }}</a>
+          {% if p.fabric_name %}
+            <div class="text-slate-600 font-sans">{{ p.fabric_name }}</div>
+          {% elif p.fabric_error %}
+            <div class="text-rose-700 text-[11px]" title="{{ p.fabric_error }}">unreachable</div>
+          {% endif %}
+        </td>
+        <td class="text-right">
+          <a href="/pairings/{{ p.id }}/diff" class="text-emerald-700 hover:underline text-xs mr-3">Diff →</a>
+          <form method="post" action="/pairings/{{ p.id }}/delete" onsubmit="return confirm('Remove pairing?');" class="inline">
+            <button class="text-rose-700 hover:underline text-xs">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-slate-500 text-sm">No pairings yet — add one above.</p>
+  {% endif %}
+</section>

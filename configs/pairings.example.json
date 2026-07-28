@@ -1,0 +1,10 @@
+[
+  {
+    "id": "example01",
+    "label": "Example UC <-> Fabric pairing",
+    "dbx_workspace_url": "https://adb-0000000000000000.0.azuredatabricks.net",
+    "uc_catalog": "my_catalog",
+    "fabric_workspace_id": "00000000-0000-0000-0000-000000000000",
+    "notes": "Copy this file to pairings.json and fill in your own values."
+  }
+]

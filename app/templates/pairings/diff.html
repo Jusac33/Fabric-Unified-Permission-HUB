@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/pairings" class="text-sm text-slate-500 hover:underline">← Pairings</a>
+
+<div class="flex items-start justify-between mt-2 mb-5">
+  <div>
+    <h1 class="text-2xl font-bold">{{ pairing.label }}</h1>
+    <div class="text-xs font-mono text-slate-500 mt-1">
+      <span>UC <b>{{ pairing.uc_catalog }}</b></span>
+      <span class="mx-2 text-slate-400">↔</span>
+      <span>Fabric <b>{{ pairing.fabric_workspace_id }}</b></span>
+    </div>
+  </div>
+  <a href="/pairings/{{ pairing.id }}/diff?refresh=1" class="text-xs text-slate-500 hover:underline">Refresh (force)</a>
+</div>
+
+{% if apply_report %}
+<section id="apply-result" class="bg-white rounded-xl shadow p-5 mb-6 border-2 border-emerald-400">
+  <h2 class="font-semibold mb-3 text-emerald-900">
+    {{ 'Dry-run preview' if apply_report.dry_run else 'Apply result' }} ({{ selected_direction }})
+    — {{ apply_report.actions|length }} action(s)
+  </h2>
+  <div class="flex gap-3 mb-3 text-xs">
+    <span class="px-2 py-1 rounded bg-emerald-50 text-emerald-800">✓ {{ apply_report.n_ok }} {{ 'would apply' if apply_report.dry_run else 'applied' }}</span>
+    <span class="px-2 py-1 rounded bg-amber-50 text-amber-800">↷ {{ apply_report.n_skipped }} skipped</span>
+    <span class="px-2 py-1 rounded bg-rose-50 text-rose-800">✗ {{ apply_report.n_failed }} failed</span>
+  </div>
+  {% if not apply_report.actions %}
+  <p class="text-rose-700 text-sm font-medium">No rows selected — tick at least one checkbox below before pressing Preview / Apply.</p>
+  {% else %}
+  <table class="w-full text-sm">
+    <thead class="text-left text-slate-500 text-xs uppercase">
+      <tr><th>Status</th><th>Principal</th><th>Scope</th><th>Access</th><th>Layer</th><th>Target action</th><th>Message</th></tr>
+    </thead>
+    <tbody>
+    {% for a in apply_report.actions %}
+      <tr class="border-t">
+        <td class="py-1">
+          {% if a.skipped %}<span class="text-amber-700" title="skipped">↷</span>
+          {% elif a.ok %}<span class="text-emerald-700">✓</span>
+          {% else %}<span class="text-rose-700">✗</span>{% endif %}
+        </td>
+        <td>{{ a.principal }}</td>
+        <td class="font-mono text-xs">{{ a.securable_scope }}</td>
+        <td>{{ a.access_class }}</td>
+        <td class="text-xs">
+          {% if a.layer == 'onelake_dar' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">OneLake DAR</span>
+          {% elif a.layer == 'workspace_role' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">Workspace role</span>
+          {% elif a.layer == 'uc_catalog_grant' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">UC catalog grant</span>
+          {% elif a.layer == 'uc_schema_grant' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">UC schema grant</span>
+          {% elif a.layer == 'uc_table_grant' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">UC table grant</span>
+          {% else %}{{ a.layer }}{% endif %}
+        </td>
+        <td class="text-xs">{{ a.target_action }}</td>
+        <td class="text-xs text-slate-500">{{ a.message }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+<script>
+  setTimeout(() => { window.scrollTo({top: 0, behavior: 'smooth'}); document.getElementById('apply-result')?.scrollIntoView({behavior:'smooth', block:'start'}); }, 50);
+</script>
+{% endif %}
+
+<div id="diff-data"
+     hx-get="/pairings/{{ pairing.id }}/diff/_data{% if request.url.query %}?{{ request.url.query }}{% endif %}"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+  {% if buckets %}
+    {% include "pairings/_diff_data.html" %}
+  {% else %}
+    {% include "_loading.html" %}
+  {% endif %}
+</div>
+{% endblock %}

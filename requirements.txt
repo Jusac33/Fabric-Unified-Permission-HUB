@@ -1,0 +1,15 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+jinja2>=3.1
+python-multipart>=0.0.9
+pydantic>=2.6
+pydantic-settings>=2.2
+httpx>=0.27
+PyYAML>=6.0
+python-dotenv>=1.0
+# Imported directly by app/services/azure_identity.py. It currently also arrives
+# transitively via policy-weaver, but a direct import belongs in direct deps.
+azure-identity>=1.17
+policy-weaver>=0.4.0
+ms-fabric-cli>=1.5.0
+msal>=1.28

@@ -1,0 +1,19 @@
+<!-- Animated skeleton placeholder shown while HTMX loads actual content -->
+<div class="animate-pulse">
+  <div class="mb-4 h-3.5 w-40 rounded bg-slate-200"></div>
+  <div class="mb-6 h-2.5 w-64 rounded bg-slate-100"></div>
+  <div class="uph-card overflow-hidden">
+    {% for _ in range(5) %}
+    <div class="flex items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-0">
+      <div class="h-8 w-8 shrink-0 rounded-lg bg-slate-100"></div>
+      <div class="h-2.5 flex-1 rounded bg-slate-200"></div>
+      <div class="h-2.5 w-24 rounded bg-slate-100"></div>
+      <div class="h-2.5 w-16 rounded bg-slate-100"></div>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="mt-4 flex items-center gap-2 text-sm text-slate-400">
+    <span class="h-2 w-2 animate-ping rounded-full bg-emerald-400"></span>
+    Loading data&hellip;
+  </p>
+</div>

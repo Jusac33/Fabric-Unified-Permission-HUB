@@ -1,0 +1,36 @@
+<!-- Fragment: databricks schema detail (loaded via HTMX) -->
+{% if error %}<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">{{ error }}</div>{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Tables ({{ tables|length }})</h2>
+    <div class="max-h-[28rem] overflow-auto">
+      <table class="w-full text-sm">
+        <thead class="text-slate-500 text-left"><tr><th>Name</th><th>Type</th><th></th></tr></thead>
+        <tbody>
+          {% for t in tables %}
+          <tr class="border-t">
+            <td class="py-1">{{ t.name }}</td>
+            <td class="text-xs">{{ t.table_type }}</td>
+            <td class="text-right text-xs"><a class="text-emerald-700 hover:underline"
+              href="/databricks/catalog/{{ catalog }}/schema/{{ schema }}/table/{{ t.name }}?workspace_url={{ workspace_url }}">Grants →</a></td>
+          </tr>
+          {% else %}<tr><td colspan="3" class="py-2 text-slate-500">None.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Schema grants ({{ schema_grants|length }})</h2>
+    <table class="w-full text-sm">
+      <thead class="text-slate-500 text-left"><tr><th>Principal</th><th>Privileges</th></tr></thead>
+      <tbody>
+        {% for g in schema_grants %}
+        <tr class="border-t"><td class="py-1">{{ g.principal }}</td>
+          <td class="text-xs">{{ g.privileges|join(', ') }}</td></tr>
+        {% else %}<tr><td colspan="2" class="py-2 text-slate-500">None.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}{{ pairing.label }} — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<a href="/" class="text-sm text-slate-500 hover:underline">← All pairings</a>
+
+{# ── Pairing header ── #}
+<div class="mt-2 mb-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">{{ pairing.label }}</h1>
+      <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+        <span class="rounded-full bg-amber-50 px-2.5 py-1 font-mono text-amber-800">UC {{ pairing.uc_catalog }}</span>
+        <span class="text-slate-300">↔</span>
+        <span class="rounded-full bg-sky-50 px-2.5 py-1 font-mono text-sky-800">Fabric {{ pairing.fabric_workspace_id[:12] }}...</span>
+      </div>
+      {% if pairing.notes %}<p class="text-xs text-slate-400 mt-2">{{ pairing.notes }}</p>{% endif %}
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="/pairings/{{ pairing.id }}?refresh=1" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Refresh</a>
+      <form method="post" action="/pairings/{{ pairing.id }}/delete" onsubmit="return confirm('Remove this pairing?');" class="inline">
+        <button class="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if error %}
+<section class="bg-rose-50 rounded-xl border border-rose-200 text-rose-800 text-sm p-4 mb-6">
+  <strong>Apply blocked:</strong> {{ error }}
+  {% if audit_error %}
+  <div class="mt-2 text-xs">{{ audit_error }}</div>
+  {% endif %}
+</section>
+{% endif %}
+
+{# ── Apply report (shown after POST) ── #}
+{% if apply_report %}
+<section id="apply-result" class="bg-white rounded-xl shadow p-5 mb-6 border-2 border-emerald-400">
+  <h2 class="font-semibold mb-3 text-emerald-900">
+    {{ 'Dry-run preview' if apply_report.dry_run else 'Sync result' }} ({{ selected_direction }})
+    — {{ apply_report.actions|length }} action(s)
+  </h2>
+  {% if audit_id %}
+  <p class="text-xs text-slate-500 mb-3">Audit ID: <span class="font-mono">{{ audit_id }}</span></p>
+  {% endif %}
+  {% if audit_error %}
+  <p class="text-xs text-rose-700 mb-3">{{ audit_error }}</p>
+  {% endif %}
+  <div class="flex gap-3 mb-3 text-xs">
+    <span class="px-2 py-1 rounded bg-emerald-50 text-emerald-800">✓ {{ apply_report.n_ok }} {{ 'would apply' if apply_report.dry_run else 'applied' }}</span>
+    <span class="px-2 py-1 rounded bg-amber-50 text-amber-800">↷ {{ apply_report.n_skipped }} skipped</span>
+    <span class="px-2 py-1 rounded bg-rose-50 text-rose-800">✗ {{ apply_report.n_failed }} failed</span>
+  </div>
+  {% if apply_report.dry_run and apply_report.actions and apply_report.n_failed == 0 and selected_row_keys %}
+  <form method="post" action="/pairings/{{ pairing.id }}/apply#apply-result"
+        class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+    <div>
+      <div class="text-sm font-semibold text-emerald-900">Ready to sync</div>
+      <div class="text-xs text-emerald-700">
+        This applies the exact {{ selected_row_keys|length }} row{{ 's' if selected_row_keys|length != 1 }} previewed above.
+      </div>
+    </div>
+    <input type="hidden" name="direction" value="{{ selected_direction }}" />
+    <input type="hidden" name="dry_run" value="false" />
+    {% for key in selected_row_keys %}
+    <input type="hidden" name="row" value="{{ key }}" />
+    {% endfor %}
+    <button type="submit"
+            onclick="return confirm('Sync these {{ selected_row_keys|length }} selected permission changes now?');"
+            class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
+      Sync now
+    </button>
+  </form>
+  {% endif %}
+  {% if not apply_report.actions %}
+  <p class="text-rose-700 text-sm font-medium">No rows selected — tick at least one checkbox below before pressing Preview / Sync.</p>
+  {% else %}
+  <table class="w-full text-sm">
+    <thead class="text-left text-slate-500 text-xs uppercase">
+      <tr><th>Status</th><th>Principal</th><th>Scope</th><th>Access</th><th>Layer</th><th>Target action</th><th>Message</th></tr>
+    </thead>
+    <tbody>
+    {% for a in apply_report.actions %}
+      <tr class="border-t">
+        <td class="py-1">
+          {% if a.skipped %}<span class="text-amber-700" title="skipped">↷</span>
+          {% elif a.ok %}<span class="text-emerald-700">✓</span>
+          {% else %}<span class="text-rose-700">✗</span>{% endif %}
+        </td>
+        <td>{{ a.principal }}</td>
+        <td class="font-mono text-xs">{{ a.securable_scope }}</td>
+        <td>{{ a.access_class }}</td>
+        <td class="text-xs">
+          {% if a.layer == 'onelake_dar' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">OneLake DAR</span>
+          {% elif a.layer == 'workspace_role' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">Workspace role</span>
+          {% elif a.layer == 'uc_catalog_grant' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">UC catalog grant</span>
+          {% elif a.layer == 'uc_schema_grant' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">UC schema grant</span>
+          {% elif a.layer == 'uc_table_grant' %}
+          <span class="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">UC table grant</span>
+          {% else %}{{ a.layer }}{% endif %}
+        </td>
+        <td class="text-xs">{{ a.target_action }}</td>
+        <td class="text-xs text-slate-500">{{ a.message }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+<script>
+  setTimeout(() => { document.getElementById('apply-result')?.scrollIntoView({behavior:'smooth', block:'start'}); }, 50);
+</script>
+{% endif %}
+
+{# ── Tab navigation ── #}
+<div class="sticky top-[73px] z-30 mb-5 rounded-2xl border border-slate-200 bg-white/95 p-1 shadow-sm backdrop-blur">
+  <nav class="flex gap-1 text-sm" id="tab-nav">
+    <button data-tab="diff"
+            class="tab-btn rounded-xl px-4 py-2 font-medium bg-emerald-600 text-white"
+            onclick="switchTab('diff')">
+      Permission Diff
+    </button>
+    <button data-tab="fabric"
+            class="tab-btn rounded-xl px-4 py-2 font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+            onclick="switchTab('fabric')">
+      Fabric Side
+    </button>
+    <button data-tab="dbx"
+            class="tab-btn rounded-xl px-4 py-2 font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+            onclick="switchTab('dbx')">
+      Databricks Side
+    </button>
+  </nav>
+</div>
+
+{# ── Tab panels (lazy-loaded via HTMX) ── #}
+<div id="tab-diff" class="tab-panel"
+     hx-get="/pairings/{{ pairing.id }}/tab/diff{% if request.url.query %}?{{ request.url.query }}{% endif %}"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+  {% if buckets %}
+    {% include "pairings/_diff_data.html" %}
+  {% else %}
+    <div class="bg-white rounded-xl shadow p-8 text-center">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-emerald-600 border-t-transparent mb-3"></div>
+      <p class="text-sm font-medium text-slate-700">Computing permission diff&hellip;</p>
+      <p class="text-xs text-slate-400 mt-1">Fetching UC catalog grants + Fabric workspace roles (this may take 10-30s on first load)</p>
+      <div class="mt-4 flex justify-center gap-6 text-xs text-slate-400">
+        <span>UC <b>{{ pairing.uc_catalog }}</b></span>
+        <span>↔</span>
+        <span>Fabric <b>{{ pairing.fabric_workspace_id[:12] }}…</b></span>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<div id="tab-fabric" class="tab-panel hidden"
+     hx-get="/pairings/{{ pairing.id }}/tab/fabric"
+     hx-trigger="revealed"
+     hx-swap="innerHTML">
+  <div class="bg-white rounded-xl shadow p-6 text-center">
+    <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-sky-600 border-t-transparent mb-2"></div>
+    <p class="text-sm text-slate-500">Loading Fabric workspace items &amp; role assignments&hellip;</p>
+  </div>
+</div>
+
+<div id="tab-dbx" class="tab-panel hidden"
+     hx-get="/pairings/{{ pairing.id }}/tab/dbx"
+     hx-trigger="revealed"
+     hx-swap="innerHTML">
+  <div class="bg-white rounded-xl shadow p-6 text-center">
+    <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-amber-600 border-t-transparent mb-2"></div>
+    <p class="text-sm text-slate-500">Loading Databricks schemas &amp; catalog grants&hellip;</p>
+  </div>
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('bg-emerald-600','text-white');
+    b.classList.add('text-slate-500');
+  });
+  const panel = document.getElementById('tab-' + name);
+  panel.classList.remove('hidden');
+  // trigger HTMX revealed if not loaded yet
+  htmx.trigger(panel, 'revealed');
+  const btn = document.querySelector('[data-tab="' + name + '"]');
+  btn.classList.add('bg-emerald-600','text-white');
+  btn.classList.remove('text-slate-500');
+}
+
+/* Apply form progress overlay — show immediately on submit */
+document.addEventListener('submit', function(e) {
+  const form = e.target;
+  if (!form.action || !form.action.includes('/apply')) return;
+  const btn = e.submitter;
+  const isDryRun = btn && btn.value === 'true';
+  const selected = form.querySelectorAll('input[name=row]:checked').length;
+  if (selected === 0) return; /* let server handle the "no rows" case */
+
+  /* Disable buttons */
+  form.querySelectorAll('button[type=submit]').forEach(b => {
+    b.disabled = true;
+    b.classList.add('opacity-50', 'cursor-not-allowed');
+  });
+
+  /* Create overlay */
+  const overlay = document.createElement('div');
+  overlay.id = 'apply-overlay';
+  overlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40';
+  overlay.innerHTML = `
+    <div class="bg-white rounded-xl shadow-lg p-8 text-center max-w-sm mx-4">
+      <div class="inline-block animate-spin rounded-full h-10 w-10 border-3 border-emerald-600 border-t-transparent mb-4"></div>
+      <p class="text-lg font-semibold text-slate-800">${isDryRun ? 'Running dry-run preview\u2026' : 'Applying permissions\u2026'}</p>
+      <p class="text-sm text-slate-500 mt-2">${selected} permission${selected !== 1 ? 's' : ''} selected</p>
+      <p class="text-xs text-slate-400 mt-3">Resolving principals via Entra &amp; calling Fabric / UC APIs&hellip;<br>This may take 10\u201360s depending on the number of changes.</p>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+});
+</script>
+{% endblock %}

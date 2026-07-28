@@ -1,0 +1,32 @@
+<!-- Fragment: databricks catalog detail (loaded via HTMX) -->
+{% if error %}<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">{{ error }}</div>{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Schemas ({{ schemas|length }})</h2>
+    <table class="w-full text-sm">
+      <tbody>
+        {% for s in schemas %}
+        <tr class="border-t">
+          <td class="py-1">{{ s.name }}</td>
+          <td class="text-right text-xs"><a class="text-emerald-700 hover:underline"
+              href="/databricks/catalog/{{ catalog }}/schema/{{ s.name }}?workspace_url={{ workspace_url }}">Open →</a></td>
+        </tr>
+        {% else %}<tr><td class="py-2 text-slate-500">None.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Catalog grants ({{ catalog_grants|length }})</h2>
+    <table class="w-full text-sm">
+      <thead class="text-slate-500 text-left"><tr><th>Principal</th><th>Privileges</th></tr></thead>
+      <tbody>
+        {% for g in catalog_grants %}
+        <tr class="border-t"><td class="py-1">{{ g.principal }}</td>
+          <td class="text-xs">{{ g.privileges|join(', ') }}</td></tr>
+        {% else %}<tr><td colspan="2" class="py-2 text-slate-500">None.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>

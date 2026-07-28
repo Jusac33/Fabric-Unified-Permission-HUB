@@ -1,0 +1,75 @@
+# NORMALIZATION: raw platform privilege → canonical access class
+normalize:
+  unity_catalog:
+    "SELECT":           "DATA_READ"
+    "READ VOLUME":      "DATA_READ"
+    "USE CATALOG":      "OBJECT_USE"
+    "USE SCHEMA":       "OBJECT_USE"
+    "MODIFY":           "DATA_WRITE"
+    "WRITE VOLUME":     "DATA_WRITE"
+    "CREATE TABLE":     "DATA_WRITE"
+    "CREATE SCHEMA":    "WORKSPACE_EDIT"
+    "CREATE CATALOG":   "WORKSPACE_EDIT"
+    "ALL PRIVILEGES":   "DATA_ADMIN"
+    "OWNERSHIP":        "DATA_ADMIN"
+
+  snowflake:
+    "SELECT":           "DATA_READ"
+    "REFERENCES":       "DATA_READ"
+    "INSERT":           "DATA_WRITE"
+    "UPDATE":           "DATA_WRITE"
+    "DELETE":           "DATA_WRITE"
+    "TRUNCATE":         "DATA_WRITE"
+    "USAGE":            "OBJECT_USE"
+    "CREATE TABLE":     "WORKSPACE_EDIT"
+    "CREATE SCHEMA":    "WORKSPACE_EDIT"
+    "OWNERSHIP":        "DATA_ADMIN"
+    "ALL":              "DATA_ADMIN"
+
+  fabric:
+    "Viewer":           "WORKSPACE_VIEW"
+    "Member":           "WORKSPACE_EDIT"
+    "Contributor":      "DATA_WRITE"
+    "Admin":            "WORKSPACE_ADMIN"
+    "ReadData":         "DATA_READ"
+    "ReadAll":          "DATA_READ"
+    "Read":             "DATA_READ"
+    "ReadWriteAll":     "DATA_WRITE"
+
+# DENORMALIZATION: canonical access class → target platform privilege string
+denormalize:
+  unity_catalog:
+    "DATA_READ":        "SELECT"
+    "DATA_WRITE":       "MODIFY"
+    "DATA_ADMIN":       "ALL PRIVILEGES"
+    "OBJECT_USE":       "USE SCHEMA"
+    "WORKSPACE_VIEW":   "USE CATALOG"
+    "WORKSPACE_EDIT":   "CREATE SCHEMA"
+    "WORKSPACE_ADMIN":  "ALL PRIVILEGES"
+
+  snowflake:
+    "DATA_READ":        "SELECT"
+    "DATA_WRITE":       "INSERT"
+    "DATA_ADMIN":       "OWNERSHIP"
+    "OBJECT_USE":       "USAGE"
+    "WORKSPACE_VIEW":   "USAGE"
+    "WORKSPACE_EDIT":   "CREATE TABLE"
+    "WORKSPACE_ADMIN":  "ALL"
+
+  fabric_workspace_role:
+    "DATA_READ":        "Viewer"
+    "DATA_WRITE":       "Contributor"
+    "DATA_ADMIN":       "Admin"
+    "OBJECT_USE":       null
+    "WORKSPACE_VIEW":   "Viewer"
+    "WORKSPACE_EDIT":   "Member"
+    "WORKSPACE_ADMIN":  "Admin"
+
+  fabric_onelake_role:
+    "DATA_READ":        "Read"
+    "DATA_WRITE":       null
+    "DATA_ADMIN":       null
+    "OBJECT_USE":       null
+    "WORKSPACE_VIEW":   null
+    "WORKSPACE_EDIT":   null
+    "WORKSPACE_ADMIN":  null

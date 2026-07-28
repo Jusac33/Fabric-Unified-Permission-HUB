@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <div class="text-xs uppercase text-slate-500">{{ source_type }}</div>
+    <h1 class="text-2xl font-bold">{{ cfg.name }}</h1>
+    <div class="text-xs text-slate-500">{{ cfg.path }}</div>
+  </div>
+  <a href="/sync" class="bg-emerald-600 text-white text-sm px-4 py-2 rounded hover:bg-emerald-700">Sync to Fabric</a>
+</div>
+
+<div id="page-data"
+     hx-get="/sources/{{ source_type }}/{{ cfg.name }}/_data"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+  {% include "_loading.html" %}
+</div>
+{% endblock %}

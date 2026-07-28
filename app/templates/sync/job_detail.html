@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/sync" class="text-sm text-slate-500 hover:underline">← Sync</a>
+<h1 class="text-2xl font-bold mt-2 mb-4">Job {{ job.id }}</h1>
+{% include "sync/_job_card.html" %}
+<pre class="mt-6 text-xs bg-slate-900 text-slate-100 p-4 rounded max-h-[70vh] overflow-auto">{{ job.log_buffer.getvalue() }}</pre>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/databricks?workspace_url={{ workspace_url }}" class="text-sm text-slate-500 hover:underline">← Catalogs</a>
+<div class="flex items-start justify-between mt-2 mb-4">
+  <h1 class="text-2xl font-bold">{{ catalog }}</h1>
+  <form method="post" action="/pairings/wizard/select-databricks" class="text-sm">
+    <input type="hidden" name="workspace_url" value="{{ workspace_url }}" />
+    <input type="hidden" name="uc_catalog" value="{{ catalog }}" />
+    <input type="hidden" name="back" value="/pairings/wizard" />
+    <button class="bg-emerald-700 text-white px-3 py-1.5 rounded">Select for pairing →</button>
+  </form>
+</div>
+
+<div id="page-data"
+     hx-get="/databricks/catalog/{{ catalog }}/_data?workspace_url={{ workspace_url }}"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+  {% include "_loading.html" %}
+</div>
+{% endblock %}

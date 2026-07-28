@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{{ settings.APP_NAME }}{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800 antialiased">
+  <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/95 text-white shadow-lg shadow-slate-900/10 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between gap-6">
+        <a href="/" class="group flex items-center gap-3">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400 text-slate-950 font-black shadow-sm shadow-emerald-900/30">UP</span>
+          <span>
+            <span class="block text-sm font-semibold tracking-tight">{{ settings.APP_NAME }}</span>
+            <span class="block text-[11px] text-slate-400">Cross-catalog permission control plane</span>
+          </span>
+        </a>
+        <nav class="flex flex-wrap items-center justify-end gap-1 text-sm">
+          <a href="/" class="rounded-full px-3 py-1.5 transition {% if request.url.path == '/' %}bg-white text-slate-950{% else %}text-slate-300 hover:bg-white/10 hover:text-white{% endif %}">Pairings</a>
+          <a href="/capabilities" class="rounded-full px-3 py-1.5 transition {% if request.url.path.startswith('/capabilities') %}bg-white text-slate-950{% else %}text-slate-300 hover:bg-white/10 hover:text-white{% endif %}">Source Matrix</a>
+          <a href="/sources" class="rounded-full px-3 py-1.5 transition {% if request.url.path.startswith('/sources') %}bg-white text-slate-950{% else %}text-slate-300 hover:bg-white/10 hover:text-white{% endif %}">Sources</a>
+          <a href="/inventory" class="rounded-full px-3 py-1.5 transition {% if request.url.path.startswith('/inventory') %}bg-white text-slate-950{% else %}text-slate-300 hover:bg-white/10 hover:text-white{% endif %}">Inventory</a>
+          <a href="/sync" class="rounded-full px-3 py-1.5 transition {% if request.url.path.startswith('/sync') %}bg-white text-slate-950{% else %}text-slate-300 hover:bg-white/10 hover:text-white{% endif %}">Sync</a>
+          <a href="/operations" class="rounded-full px-3 py-1.5 transition {% if request.url.path.startswith('/operations') %}bg-white text-slate-950{% else %}text-slate-300 hover:bg-white/10 hover:text-white{% endif %}">Operations</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    {% block content %}{{ content|safe if content else "" }}{% endblock %}
+  </main>
+  <footer class="max-w-7xl mx-auto px-6 py-6 text-xs text-slate-400">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+      <span>{{ settings.APP_NAME }} &middot; internal tool</span>
+      <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>localhost ready</span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!-- Fragment: fabric item policies (loaded via HTMX) -->
+{% if error %}<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">{{ error }}</div>{% endif %}
+
+{% if policies %}
+<div class="space-y-4">
+  {% for p in policies %}
+  <div class="bg-white rounded-xl shadow p-4">
+    <div class="flex items-center justify-between">
+      <div class="font-medium">{{ p.name }}</div>
+      <span class="text-xs text-slate-500 font-mono">{{ p.id }}</span>
+    </div>
+    <details class="mt-2">
+      <summary class="text-xs text-slate-500 cursor-pointer">JSON</summary>
+      <pre class="mt-2 text-xs bg-slate-900 text-slate-100 p-3 rounded max-h-80 overflow-auto">{{ p|tojson(indent=2) }}</pre>
+    </details>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-slate-500">No data access policies found (or OneLake Security not enabled on this item).</p>
+{% endif %}

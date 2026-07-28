@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h1 class="text-2xl font-bold">Databricks Unity Catalog</h1>
+    <div class="text-xs text-slate-500 font-mono">{{ workspace_url or "(no workspace selected)" }}</div>
+  </div>
+  <form class="text-xs flex items-center gap-2">
+    {% if pairings %}
+    <select name="pairing" class="border rounded px-2 py-1">
+      <option value="">— pick a pairing —</option>
+      {% for p in pairings %}
+        <option value="{{ p.id }}" {% if selected_pairing == p.id %}selected{% endif %}>
+          {{ p.label }} ({{ p.uc_catalog }})
+        </option>
+      {% endfor %}
+    </select>
+    <span class="text-slate-400">or</span>
+    {% endif %}
+    <input name="workspace_url" value="{{ workspace_url }}"
+           list="dbx-recent"
+           placeholder="https://adb-xxxxxxx.azuredatabricks.net"
+           class="border rounded px-2 py-1 w-80 font-mono" />
+    {% if recent %}
+    <datalist id="dbx-recent">
+      {% for u in recent %}<option value="{{ u }}"></option>{% endfor %}
+    </datalist>
+    {% endif %}
+    <button class="bg-slate-900 text-white px-3 py-1 rounded">Switch</button>
+  </form>
+</div>
+
+<div id="page-data"
+     hx-get="/databricks/_data{% if request.url.query %}?{{ request.url.query }}{% endif %}"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+  {% include "_loading.html" %}
+</div>
+{% endblock %}

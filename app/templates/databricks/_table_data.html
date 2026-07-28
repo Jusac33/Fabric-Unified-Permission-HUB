@@ -1,0 +1,15 @@
+<!-- Fragment: databricks table grants (loaded via HTMX) -->
+{% if error %}<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">{{ error }}</div>{% endif %}
+
+<div class="bg-white rounded-xl shadow p-5">
+  <h2 class="font-semibold mb-2">Grants ({{ grants|length }})</h2>
+  <table class="w-full text-sm">
+    <thead class="text-slate-500 text-left"><tr><th>Principal</th><th>Privileges</th></tr></thead>
+    <tbody>
+      {% for g in grants %}
+      <tr class="border-t"><td class="py-1">{{ g.principal }}</td>
+        <td class="text-xs">{{ g.privileges|join(', ') }}</td></tr>
+      {% else %}<tr><td colspan="2" class="py-2 text-slate-500">None.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>

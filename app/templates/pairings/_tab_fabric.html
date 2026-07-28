@@ -1,0 +1,59 @@
+<!-- Fragment: Fabric side tab (items + role assignments for the paired workspace) -->
+{% if error %}<div class="mb-4 p-3 rounded bg-rose-50 text-rose-800 text-sm">{{ error }}</div>{% endif %}
+
+{% if ws %}
+<div class="mb-4 p-3 rounded bg-slate-50 border border-slate-200 text-sm">
+  <span class="font-semibold">{{ ws.displayName }}</span>
+  <span class="text-xs font-mono text-slate-500 ml-2">{{ ws.id }}</span>
+  {% if ws.capacityId %}<span class="text-xs text-slate-400 ml-2">capacity: {{ ws.capacityId[:8] }}…</span>{% endif %}
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Items ({{ items|length }})</h2>
+    <div class="max-h-[32rem] overflow-auto text-sm">
+      <table class="w-full">
+        <thead class="text-slate-500 text-left text-xs uppercase">
+          <tr><th class="py-1">Name</th><th>Type</th></tr>
+        </thead>
+        <tbody>
+          {% for it in items %}
+          <tr class="border-t">
+            <td class="py-1">{{ it.displayName }}</td>
+            <td class="text-xs">
+              <span class="inline-block px-1.5 py-0.5 rounded
+                {% if it.type == 'MirroredAzureDatabricksCatalog' %}bg-indigo-100 text-indigo-800
+                {% elif it.type == 'Lakehouse' %}bg-emerald-100 text-emerald-800
+                {% elif it.type == 'Warehouse' %}bg-amber-100 text-amber-800
+                {% else %}bg-slate-100 text-slate-600{% endif %}">{{ it.type }}</span>
+            </td>
+          </tr>
+          {% else %}<tr><td colspan="2" class="py-2 text-slate-500">No items.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bg-white rounded-xl shadow p-5">
+    <h2 class="font-semibold mb-2">Workspace role assignments ({{ role_assignments|length }})</h2>
+    <div class="max-h-[32rem] overflow-auto text-sm">
+      <table class="w-full">
+        <thead class="text-slate-500 text-left text-xs uppercase"><tr><th class="py-1">Principal</th><th>Role</th></tr></thead>
+        <tbody>
+          {% for r in role_assignments %}
+          <tr class="border-t">
+            <td class="py-1">{{ r.principal.displayName if r.principal else r.id }}
+              <span class="text-xs text-slate-400">({{ r.principal.type if r.principal else "" }})</span></td>
+            <td><span class="inline-block px-1.5 py-0.5 text-xs rounded
+              {% if r.role == 'Admin' %}bg-rose-100 text-rose-800
+              {% elif r.role == 'Member' %}bg-amber-100 text-amber-800
+              {% elif r.role == 'Contributor' %}bg-sky-100 text-sky-800
+              {% else %}bg-slate-100 text-slate-700{% endif %}">{{ r.role }}</span></td>
+          </tr>
+          {% else %}<tr><td colspan="2" class="py-2 text-slate-500">None / no permission to view.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
